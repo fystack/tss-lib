@@ -50,7 +50,7 @@ type (
 		P, Q *big.Int
 
 		// cached M = N^(-1) mod PhiN, lazily computed
-		m    *big.Int
+		m     *big.Int
 		mOnce sync.Once
 	}
 
