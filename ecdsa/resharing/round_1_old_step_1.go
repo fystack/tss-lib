@@ -35,6 +35,9 @@ func (round *round1) Start() *tss.Error {
 	round.resetOK() // resets both round.oldOK and round.newOK
 	round.allNewOK()
 
+	if round.ReSharingParams().IsOldCommittee() && round.ReSharingParams().IsNewCommittee() {
+		return round.WrapError(errors.New("party is in both the old and new committees; new committee members need distinct party keys"), round.PartyID())
+	}
 	if !round.ReSharingParams().IsOldCommittee() {
 		return nil
 	}
@@ -117,12 +120,7 @@ func (round *round1) Update() (bool, *tss.Error) {
 		}
 		round.oldOK[j] = true
 
-		// save the ecdsa pub received from the old committee
-		if round.temp.dgRound1Messages[0] == nil {
-			ret = false
-			continue
-		}
-		r1msg := round.temp.dgRound1Messages[0].Content().(*DGRound1Message)
+		r1msg := msg.Content().(*DGRound1Message)
 		candidate, err := r1msg.UnmarshalECDSAPub(round.Params().EC())
 		if err != nil {
 			return false, round.WrapError(errors.New("unable to unmarshal the ecdsa pub key"), msg.GetFrom())

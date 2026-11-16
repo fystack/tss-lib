@@ -236,3 +236,17 @@ signing:
 		}
 	}
 }
+
+func TestRejectsPartyInBothCommittees(t *testing.T) {
+	keys, pIDs, err := keygen.LoadKeygenTestFixtures(testThreshold + 1)
+	assert.NoError(t, err)
+	p2pCtx := tss.NewPeerContext(pIDs)
+	params := tss.NewReSharingParameters(tss.S256(), p2pCtx, p2pCtx, pIDs[0], len(pIDs), testThreshold, len(pIDs), testThreshold)
+	out := make(chan tss.Message, len(pIDs))
+	end := make(chan *keygen.LocalPartySaveData, 1)
+	P := NewLocalParty(params, keys[0], out, end)
+	tssErr := P.Start()
+	if assert.NotNil(t, tssErr) {
+		assert.Contains(t, tssErr.Error(), "both the old and new committees")
+	}
+}
